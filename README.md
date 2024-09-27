@@ -22,6 +22,9 @@ CryptoAgent is a professional, enterprise-grade solution designed to fetch, anal
 
 ## Installation
 
+```bash
+$ pip3 install -U cryptoagent
+```
 
 ## Usage
 
