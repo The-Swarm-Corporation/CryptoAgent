@@ -1,4 +1,4 @@
-[![Multi-Modality](agorabanner.png)](https://discord.com/servers/agora-999382051935506503)
+
 
 # CryptoAgent: Real-Time Cryptocurrency Data Analysis Agent
 
