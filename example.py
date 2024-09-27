@@ -1,5 +1,5 @@
 import os
-from cryptoagent.main import OpenAIChat
+from swarm_models import OpenAIChat
 from swarms import Agent
 from cryptoagent.main import CryptoAnalysis
 
