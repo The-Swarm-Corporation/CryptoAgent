@@ -70,59 +70,9 @@ for summary in summaries:
     print(summary)
 ```
 
-## Components Overview
-
-### 1. **CryptoTool**
-`CryptoTool` integrates with CoinGecko's API to fetch real-time cryptocurrency data. It provides detailed information such as:
-
-- Current price
-- Market capitalization
-- 24-hour trading volume
-- Circulating and total supply
-- Price changes over 24 hours
-
-Example of fetching data for a cryptocurrency:
-
-```python
-crypto_tool = CryptoTool()
-crypto_data = crypto_tool.get_crypto_data("bitcoin")
-```
-
-### 2. **CryptoAnalysisAgent**
-`CryptoAnalysisAgent` is the core component that combines data fetching with advanced analysis. It generates custom prompts for OpenAI's GPT-4 model, enabling deeper insights into the fetched data.
-
-Example of running the agent:
-
-```python
-agent = CryptoAnalysisAgent(
-    agent_name="Crypto-Analysis-Agent",
-    system_prompt=CRYPTO_AGENT_SYS_PROMPT,
-    llm=model
-)
-
-# Fetch and analyze Bitcoin data
-response = agent.run("Analyze the recent price changes and trends of Bitcoin.", "bitcoin")
-print(response)
-```
-
-### 3. **Loguru for Logging**
-The `loguru` library is integrated for real-time logging, making it easy to trace operations, handle errors, and ensure transparency in the data pipeline.
-
-Example of error handling:
-
-```python
-try:
-    response = requests.get(self.api_url, params=params)
-    response.raise_for_status()
-except requests.RequestException as e:
-    logger.error(f"Error fetching crypto data: {e}")
-```
-
 ## System Architecture
-
 CryptoAgent follows a modular architecture:
 
-- **CryptoTool** handles all interactions with the CoinGecko API.
 - **CryptoAnalysisAgent** performs the crypto analysis by combining data fetched from the API with OpenAI's powerful language models.
 - **Agent Framework**: The agent architecture, powered by `swarms`, ensures flexibility, scalability, and reliability for enterprise deployments.
 
@@ -169,4 +119,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contact
 
-For enterprise inquiries, custom deployments, or support, please contact [support@cryptoagent.io](mailto:support@cryptoagent.io).
+For enterprise inquiries, custom deployments, or support, please contact [kye@swarms.world](mailto:kye@swarms.world).

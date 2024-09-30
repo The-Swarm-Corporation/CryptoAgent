@@ -1,12 +1,13 @@
 import os
-import requests
-from typing import List, Dict, Union
-from pydantic import BaseModel
-from swarms import Agent
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+from typing import Dict, List, Union
+
+import requests
 from dotenv import load_dotenv
 from loguru import logger
-from datetime import datetime
+from pydantic import BaseModel
+from swarms import Agent
 
 load_dotenv()
 
@@ -22,6 +23,7 @@ class TokenUsage(BaseModel):
 
 
 class CryptoAnalysisSchema(BaseModel):
+    
     """
     Pydantic schema for the final crypto analysis output.
     """
@@ -154,7 +156,7 @@ class CryptoAnalysis:
         All-Time High: ${crypto_data.get('ath', 'N/A')}
         All-Time Low: ${crypto_data.get('atl', 'N/A')}
         Market Rank: {crypto_data.get('market_cap_rank', 'N/A')}
-        Fully Diluted Valuation: ${crypto_data.get('fully_diluted_valuation', 'N/A')}
+        # Fully Diluted Valuation: ${crypto_data.get('fully_diluted_valuation', 'N/A')}
         """
 
         prompt = f"{self.agent.system_prompt}\n\nHere is the live data for {crypto_data.get('name', coin_id)}:\n{crypto_info}\n\nPlease provide an analysis for {crypto_data.get('name', coin_id)}."
