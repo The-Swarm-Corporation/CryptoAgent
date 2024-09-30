@@ -32,7 +32,7 @@ $ pip3 install -U cryptoagent
 import os
 from cryptoagent.main import OpenAIChat
 from swarms import Agent
-from cryptoagent.main import CryptoAnalysis
+from cryptoagent.main import CryptoAgent
 
 # Create an instance of the OpenAIChat class for LLM integration
 api_key = os.getenv("OPENAI_API_KEY")
@@ -56,8 +56,8 @@ input_agent = Agent(
     context_length=10000,
 )
 
-# Create CryptoAnalysis instance and pass the input agent
-crypto_analyzer = CryptoAnalysis(agent=input_agent)
+# Create CryptoAgent instance and pass the input agent
+crypto_analyzer = CryptoAgent(agent=input_agent)
 
 # Example coin IDs to summarize multiple coins
 coin_ids = ["bitcoin", "ethereum", "dogecoin", "xrp"]
@@ -73,7 +73,7 @@ for summary in summaries:
 ## System Architecture
 CryptoAgent follows a modular architecture:
 
-- **CryptoAnalysisAgent** performs the crypto analysis by combining data fetched from the API with OpenAI's powerful language models.
+- **CryptoAgentAgent** performs the crypto analysis by combining data fetched from the API with OpenAI's powerful language models.
 - **Agent Framework**: The agent architecture, powered by `swarms`, ensures flexibility, scalability, and reliability for enterprise deployments.
 
 ## Enterprise-Grade Features

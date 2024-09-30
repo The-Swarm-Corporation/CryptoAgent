@@ -1,7 +1,9 @@
 import os
+
 from swarm_models import OpenAIChat
 from swarms import Agent
-from cryptoagent.main import CryptoAnalysis
+
+from cryptoagent.main import CryptoAgent
 
 # Create an instance of the OpenAIChat class for LLM integration
 api_key = os.getenv("OPENAI_API_KEY")
@@ -25,15 +27,16 @@ input_agent = Agent(
     context_length=10000,
 )
 
-# Create CryptoAnalysis instance and pass the input agent
-crypto_analyzer = CryptoAnalysis(agent=input_agent)
+# Create CryptoAgent instance and pass the input agent
+crypto_analyzer = CryptoAgent(agent=input_agent)
 
 # Example coin IDs to summarize multiple coins
-coin_ids = ["bitcoin", "ethereum", "dogecoin", "xrp"]
+coin_ids = ["bitcoin", "ethereum"]
 
 # Fetch and summarize crypto data for multiple coins in parallel
 summaries = crypto_analyzer.run(coin_ids)
 
-# Print the summaries
-for summary in summaries:
-    print(summary)
+# # Print the summaries
+# for summary in summaries:
+#     print(summary)
+print(summaries)
