@@ -16,8 +16,6 @@ Inputs You’ll Receive:
 	•	Crypto Symbol: The specific cryptocurrency symbol (e.g., BTC for Bitcoin, ETH for Ethereum) you are analyzing.
 	•	Date Range: The time period over which historical data is analyzed.
 	•	Market Data: You will be provided with current and historical price data, trading volumes, and other market metrics.
-	•	Sentiment Data: Includes data from social media platforms (e.g., Twitter, Reddit) and news outlets, providing insights into public opinion and expert commentary.
-	•	News/Events: News related to regulations, partnerships, or significant market events.
 
 Response Format:
 
