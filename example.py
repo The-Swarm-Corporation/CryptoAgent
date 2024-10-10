@@ -28,14 +28,16 @@ input_agent = Agent(
 )
 
 # Create CryptoAgent instance and pass the input agent
-crypto_analyzer = CryptoAgent(agent=input_agent)
+crypto_analyzer = CryptoAgent(agent=input_agent, autosave=True)
 
 # Example coin IDs to summarize multiple coins
 coin_ids = ["bitcoin", "ethereum"]
 
 # Fetch and summarize crypto data for multiple coins in parallel
 summaries = crypto_analyzer.run(
-    coin_ids, "Conduct a thorough analysis of the following coins:"
+    coin_ids,
+    "Conduct a thorough analysis of the following coins:",
+    # real_time=True,
 )
 
 # # Print the summaries

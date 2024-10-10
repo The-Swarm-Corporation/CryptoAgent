@@ -66,11 +66,12 @@ coin_ids = ["bitcoin", "ethereum"]
 
 # Fetch and summarize crypto data for multiple coins in parallel
 summaries = crypto_analyzer.run(
-    coin_ids, "Conduct a thorough analysis of the following coins:"
+    coin_ids, "Conduct a thorough analysis of the following coins:", #real_time=True # Make it real-time where it will fetch the results in real-time
 )
 
 # # Print the summaries
 print(summaries)
+
 
 ```
 

@@ -1,3 +1,4 @@
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -7,7 +8,7 @@ import requests
 from dotenv import load_dotenv
 from loguru import logger
 from pydantic import BaseModel, Field
-from swarms import Agent
+from swarms import Agent, create_file_in_folder
 
 load_dotenv()
 
@@ -27,7 +28,9 @@ class CryptoAgentSchema(BaseModel):
     """
     Pydantic schema for the final crypto analysis output.
     """
-
+    id: str = Field(
+        default_factory=lambda: uuid.uuid4().hex
+    )  # Ensure ID is generated
     coin_id: str = Field(default_factory=lambda: uuid.uuid4().hex)
     timestamp: str = Field(
         default_factory=lambda: datetime.utcnow().isoformat()
@@ -55,6 +58,8 @@ class CryptoAgent:
         currency: str = "usd",
         log_tokens: bool = True,
         log_level: str = "INFO",
+        autosave: bool = True,
+        workspace_folder: str = "crypto-agent-runs",
     ):
         """
         Initialize the CryptoAgent with an agent, currency, and logging options.
@@ -65,8 +70,12 @@ class CryptoAgent:
         - log_tokens (bool, optional): Flag to enable or disable token usage logging. Defaults to True.
         - log_level (str, optional): The log level to use. Defaults to "INFO".
         """
+        self.name = name
+        self.description = description
         self.agent = agent
         self.currency = currency
+        self.autosave = autosave
+        self.workspace_folder = workspace_folder
         self.coingecko_url = (
             "https://api.coingecko.com/api/v3/coins/markets"
         )
@@ -76,6 +85,7 @@ class CryptoAgent:
         )
         logger.add("crypto_agent.log", rotation="10 MB")
         logger.level = log_level
+        self.log_file_name = f"crypto-agent-run-time-{uuid.uuid4().hex}"
 
     def get_crypto_data_coingecko(
         self, coin_id: str
@@ -170,41 +180,126 @@ class CryptoAgent:
 
         return result
 
-    def run(self, coin_ids: List[str], task: str = None) -> str:
+    def run(
+        self,
+        coin_ids: List[str],
+        task: str = None,
+        real_time: bool = False,
+    ) -> str:
         """
-        Summarize multiple coins in parallel using ThreadPoolExecutor and return JSON format.
+        Summarize multiple coins in parallel using ThreadPoolExecutor and return JSON format. Optionally, fetches data in real-time or every 1 second.
 
         Args:
         - coin_ids (List[str]): A list of coin IDs to summarize.
         - task (str, optional): The task to perform on the coin data. Defaults to None.
+        - real_time (bool, optional): If True, fetches data in real-time or every 1 second. Defaults to False.
 
         Returns:
         - str: The summaries of the crypto data in JSON format.
         """
-        with ThreadPoolExecutor() as executor:
-            future_to_coin = {
-                executor.submit(
-                    self.fetch_and_summarize, coin_id, task
-                ): coin_id
-                for coin_id in coin_ids
-            }
+        if real_time:
+            while True:
+                with ThreadPoolExecutor() as executor:
+                    future_to_coin = {
+                        executor.submit(
+                            self.fetch_and_summarize, coin_id, task
+                        ): coin_id
+                        for coin_id in coin_ids
+                    }
 
-            for future in as_completed(future_to_coin):
-                coin_id = future_to_coin[future]
-                try:
-                    future.result()
-                    logger.info(f"Completed summary for {coin_id}.")
-                except Exception as exc:
-                    logger.error(
-                        f"Error summarizing {coin_id}: {exc}"
-                    )
-                    error_summary = CryptoAgentSchema(
-                        coin_id=coin_id,
-                        timestamp=datetime.utcnow().isoformat(),
-                        summary=f"Error summarizing {coin_id}",
-                        raw_data={},
-                    )
-                    self.logs.logs.append(error_summary)
+                    for future in as_completed(future_to_coin):
+                        coin_id = future_to_coin[future]
+                        try:
+                            future.result()
+                            logger.info(
+                                f"Completed summary for {coin_id}."
+                            )
+                        except KeyboardInterrupt:
+                            logger.info(
+                                "KeyboardInterrupt detected. Auto-saving logs before exiting."
+                            )
+                            if self.autosave:
+                                create_file_in_folder(
+                                    self.workspace_folder,
+                                    self.log_file_name,
+                                    self.logs.model_dump_json(
+                                        indent=4
+                                    ),
+                                )
+                            raise
+                        except Exception as exc:
+                            logger.error(
+                                f"Error summarizing {coin_id}: {exc}"
+                            )
+                            error_summary = CryptoAgentSchema(
+                                coin_id=coin_id,
+                                timestamp=datetime.utcnow().isoformat(),
+                                summary=f"Error summarizing {coin_id}",
+                                raw_data={},
+                            )
+                            self.logs.logs.append(error_summary)
+                            if self.autosave:
+                                create_file_in_folder(
+                                    self.workspace_folder,
+                                    self.log_file_name,
+                                    self.logs.model_dump_json(
+                                        indent=4
+                                    ),
+                                )
+                time.sleep(
+                    1
+                )  # Sleep for 1 second before fetching again
+        else:
+            with ThreadPoolExecutor() as executor:
+                future_to_coin = {
+                    executor.submit(
+                        self.fetch_and_summarize, coin_id, task
+                    ): coin_id
+                    for coin_id in coin_ids
+                }
 
+                for future in as_completed(future_to_coin):
+                    coin_id = future_to_coin[future]
+                    try:
+                        future.result()
+                        logger.info(
+                            f"Completed summary for {coin_id}."
+                        )
+                    except KeyboardInterrupt:
+                        logger.info(
+                            "KeyboardInterrupt detected. Auto-saving logs before exiting."
+                        )
+                        if self.autosave:
+                            create_file_in_folder(
+                                self.workspace_folder,
+                                self.log_file_name,
+                                self.logs.model_dump_json(indent=4),
+                            )
+                        raise
+                    except Exception as exc:
+                        logger.error(
+                            f"Error summarizing {coin_id}: {exc}"
+                        )
+                        error_summary = CryptoAgentSchema(
+                            coin_id=coin_id,
+                            timestamp=datetime.utcnow().isoformat(),
+                            summary=f"Error summarizing {coin_id}",
+                            raw_data={},
+                        )
+                        self.logs.logs.append(error_summary)
+                        if self.autosave:
+                            create_file_in_folder(
+                                self.workspace_folder,
+                                self.log_file_name,
+                                self.logs.model_dump_json(indent=4),
+                            )
+
+        if self.autosave is True:
+            create_file_in_folder(
+                self.workspace_folder,
+                self.log_file_name,
+                self.logs.model_dump_json(indent=4),
+            )
+        
         # Return the result as a JSON string
         return self.logs.model_dump_json(indent=4)
