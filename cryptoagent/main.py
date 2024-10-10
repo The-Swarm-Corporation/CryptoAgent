@@ -1,4 +1,3 @@
-import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -17,6 +16,7 @@ class TokenUsage(BaseModel):
     """
     Schema for logging token usage by the LLM.
     """
+
     id: str = Field(default_factory=lambda: uuid.uuid4().hex)
     total_tokens: int = 0
     prompt_tokens: int = 0
@@ -27,49 +27,73 @@ class CryptoAgentSchema(BaseModel):
     """
     Pydantic schema for the final crypto analysis output.
     """
+
     coin_id: str = Field(default_factory=lambda: uuid.uuid4().hex)
-    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = Field(
+        default_factory=lambda: datetime.utcnow().isoformat()
+    )
     summary: str = "No summary available"
     raw_data: Dict = Field(default_factory=dict)
 
 
 class CryptoAgentSchemaLog(BaseModel):
-    id: str = Field(default_factory=lambda: uuid.uuid4().hex)  # Ensure ID is generated
+    id: str = Field(
+        default_factory=lambda: uuid.uuid4().hex
+    )  # Ensure ID is generated
     logs: List[CryptoAgentSchema] = Field(default_factory=list)
-    time_stamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
-    
-    
+    time_stamp: str = Field(
+        default_factory=lambda: datetime.utcnow().isoformat()
+    )
+
+
 class CryptoAgent:
     def __init__(
         self,
-        agent: Agent,
+        name: str = "crypto-price-agent-01",
+        description: str = "Fetches real-time crypto data for a specific coin",
+        agent: Agent = None,
         currency: str = "usd",
         log_tokens: bool = True,
+        log_level: str = "INFO",
     ):
+        """
+        Initialize the CryptoAgent with an agent, currency, and logging options.
+
+        Args:
+        - agent (Agent): The agent instance for generating summaries.
+        - currency (str, optional): The currency to use for crypto data. Defaults to "usd".
+        - log_tokens (bool, optional): Flag to enable or disable token usage logging. Defaults to True.
+        - log_level (str, optional): The log level to use. Defaults to "INFO".
+        """
         self.agent = agent
         self.currency = currency
         self.coingecko_url = (
             "https://api.coingecko.com/api/v3/coins/markets"
         )
-        self.coinmarketcap_url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
-        self.cmc_api_key = os.getenv("COINMARKETCAP_API_KEY")
         self.log_tokens = log_tokens
         self.logs = CryptoAgentSchemaLog(
-            logs = [],
+            logs=[],
         )
+        logger.add("crypto_agent.log", rotation="10 MB")
+        logger.level = log_level
 
     def get_crypto_data_coingecko(
         self, coin_id: str
     ) -> Union[Dict, str]:
         """
         Fetch crypto data from CoinGecko.
+
+        Args:
+        - coin_id (str): The ID of the coin to fetch data for.
+
+        Returns:
+        - Union[Dict, str]: The fetched crypto data or an error message.
         """
         try:
             params = {"vs_currency": self.currency, "ids": coin_id}
             response = requests.get(self.coingecko_url, params=params)
             response.raise_for_status()
             data = response.json()
-            print(data)
             if data:
                 return data[0]  # Return the first result
             else:
@@ -88,16 +112,29 @@ class CryptoAgent:
     def get_crypto_data(self, coin_id: str) -> Dict:
         """
         Fetch crypto data, prioritizing CoinGecko and using CoinMarketCap as a fallback.
+
+        Args:
+        - coin_id (str): The ID of the coin to fetch data for.
+
+        Returns:
+        - Dict: The fetched crypto data.
         """
         logger.info(f"Fetching data for {coin_id} from CoinGecko.")
         data = self.get_crypto_data_coingecko(coin_id)
         return data
 
     def fetch_and_summarize(
-        self, coin_id: str
+        self, coin_id: str, task: str = None
     ) -> CryptoAgentSchema:
         """
         Fetch crypto data and generate a summary using the input agent.
+
+        Args:
+        - coin_id (str): The ID of the coin to summarize.
+        - task (str, optional): The task to perform on the coin data. Defaults to None.
+
+        Returns:
+        - CryptoAgentSchema: The summary of the crypto data.
         """
         crypto_data = self.get_crypto_data(coin_id)
 
@@ -119,7 +156,7 @@ class CryptoAgent:
 
         # Run the agent to summarize the coin data
         logger.info(f"Summarizing data for {coin_id}.")
-        result = self.agent.run(prompt)
+        result = self.agent.run(task + prompt)
 
         # Return analysis with Pydantic schema
         self.logs.logs.append(
@@ -131,13 +168,24 @@ class CryptoAgent:
             )
         )
 
-    def run(self, coin_ids: List[str]) -> str:
+        return result
+
+    def run(self, coin_ids: List[str], task: str = None) -> str:
         """
         Summarize multiple coins in parallel using ThreadPoolExecutor and return JSON format.
+
+        Args:
+        - coin_ids (List[str]): A list of coin IDs to summarize.
+        - task (str, optional): The task to perform on the coin data. Defaults to None.
+
+        Returns:
+        - str: The summaries of the crypto data in JSON format.
         """
         with ThreadPoolExecutor() as executor:
             future_to_coin = {
-                executor.submit(self.fetch_and_summarize, coin_id): coin_id
+                executor.submit(
+                    self.fetch_and_summarize, coin_id, task
+                ): coin_id
                 for coin_id in coin_ids
             }
 
@@ -147,7 +195,9 @@ class CryptoAgent:
                     future.result()
                     logger.info(f"Completed summary for {coin_id}.")
                 except Exception as exc:
-                    logger.error(f"Error summarizing {coin_id}: {exc}")
+                    logger.error(
+                        f"Error summarizing {coin_id}: {exc}"
+                    )
                     error_summary = CryptoAgentSchema(
                         coin_id=coin_id,
                         timestamp=datetime.utcnow().isoformat(),
@@ -157,4 +207,4 @@ class CryptoAgent:
                     self.logs.logs.append(error_summary)
 
         # Return the result as a JSON string
-        return self.logs.json()
+        return self.logs.model_dump_json(indent=4)

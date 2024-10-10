@@ -34,9 +34,9 @@ crypto_analyzer = CryptoAgent(agent=input_agent)
 coin_ids = ["bitcoin", "ethereum"]
 
 # Fetch and summarize crypto data for multiple coins in parallel
-summaries = crypto_analyzer.run(coin_ids)
+summaries = crypto_analyzer.run(
+    coin_ids, "Conduct a thorough analysis of the following coins:"
+)
 
 # # Print the summaries
-# for summary in summaries:
-#     print(summary)
 print(summaries)

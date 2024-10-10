@@ -30,8 +30,10 @@ $ pip3 install -U cryptoagent
 
 ```python
 import os
-from cryptoagent.main import OpenAIChat
+
+from swarm_models import OpenAIChat
 from swarms import Agent
+
 from cryptoagent.main import CryptoAgent
 
 # Create an instance of the OpenAIChat class for LLM integration
@@ -60,14 +62,16 @@ input_agent = Agent(
 crypto_analyzer = CryptoAgent(agent=input_agent)
 
 # Example coin IDs to summarize multiple coins
-coin_ids = ["bitcoin", "ethereum", "dogecoin", "xrp"]
+coin_ids = ["bitcoin", "ethereum"]
 
 # Fetch and summarize crypto data for multiple coins in parallel
-summaries = crypto_analyzer.run(coin_ids)
+summaries = crypto_analyzer.run(
+    coin_ids, "Conduct a thorough analysis of the following coins:"
+)
 
-# Print the summaries
-for summary in summaries:
-    print(summary)
+# # Print the summaries
+print(summaries)
+
 ```
 
 ## System Architecture
