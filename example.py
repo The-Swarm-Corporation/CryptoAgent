@@ -4,6 +4,7 @@ from swarm_models import OpenAIChat
 from swarms import Agent
 
 from cryptoagent.main import CryptoAgent
+from cryptoagent.prompts import CRYPTO_AGENT_SYS_PROMPT
 
 # Create an instance of the OpenAIChat class for LLM integration
 api_key = os.getenv("OPENAI_API_KEY")
@@ -14,7 +15,7 @@ model = OpenAIChat(
 # Create the input agent
 input_agent = Agent(
     agent_name="Crypto-Analysis-Agent",
-    system_prompt="You are a financial analysis agent that provides crypto analysis with live data.",
+    system_prompt=CRYPTO_AGENT_SYS_PROMPT,
     llm=model,
     max_loops=1,
     autosave=True,
@@ -23,7 +24,7 @@ input_agent = Agent(
     dynamic_temperature_enabled=True,
     saved_state_path="crypto_agent.json",
     user_name="swarms_corp",
-    retry_attempts=2,
+    retry_attempts=1,
     context_length=10000,
 )
 

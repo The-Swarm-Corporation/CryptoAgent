@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "cryptoagent"
-version = "0.0.6"
+version = "0.0.8"
 description = "cryptoagent - Swarms"
 license = "MIT"
 authors = ["Kye Gomez <kye@apac.ai>"]
@@ -26,6 +26,7 @@ python = "^3.10"
 swarms = "*"
 pydantic = "*"
 loguru = "*"
+swarm_models = "*"
 
 
 [tool.poetry.group.lint.dependencies]

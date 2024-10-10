@@ -20,10 +20,20 @@ CryptoAgent is a professional, enterprise-grade solution designed to fetch, anal
 - **Investment Research**: Generate comprehensive reports on specific coins, including trends, market sentiment, and price changes.
 - **Financial Analysis**: Use CryptoAgent to analyze large volumes of crypto data, summarize trends, and provide strategic insights.
 
+
 ## Installation
 
 ```bash
 $ pip3 install -U cryptoagent
+```
+
+## Requirements
+Create a `.env` file and place your keys inside
+```env
+WORKSPACE_DIR=""
+OPENAI_API_KEY=""
+COINMARKETCAP_API_KEY=""
+ETHERSCAN_KEY=""
 ```
 
 ## Usage
@@ -35,6 +45,7 @@ from swarm_models import OpenAIChat
 from swarms import Agent
 
 from cryptoagent.main import CryptoAgent
+from cryptoagent.prompts import CRYPTO_AGENT_SYS_PROMPT
 
 # Create an instance of the OpenAIChat class for LLM integration
 api_key = os.getenv("OPENAI_API_KEY")
@@ -45,7 +56,7 @@ model = OpenAIChat(
 # Create the input agent
 input_agent = Agent(
     agent_name="Crypto-Analysis-Agent",
-    system_prompt="You are a financial analysis agent that provides crypto analysis with live data.",
+    system_prompt=CRYPTO_AGENT_SYS_PROMPT,
     llm=model,
     max_loops=1,
     autosave=True,
@@ -54,19 +65,21 @@ input_agent = Agent(
     dynamic_temperature_enabled=True,
     saved_state_path="crypto_agent.json",
     user_name="swarms_corp",
-    retry_attempts=2,
+    retry_attempts=1,
     context_length=10000,
 )
 
 # Create CryptoAgent instance and pass the input agent
-crypto_analyzer = CryptoAgent(agent=input_agent)
+crypto_analyzer = CryptoAgent(agent=input_agent, autosave=True)
 
 # Example coin IDs to summarize multiple coins
 coin_ids = ["bitcoin", "ethereum"]
 
 # Fetch and summarize crypto data for multiple coins in parallel
 summaries = crypto_analyzer.run(
-    coin_ids, "Conduct a thorough analysis of the following coins:", #real_time=True # Make it real-time where it will fetch the results in real-time
+    coin_ids,
+    "Conduct a thorough analysis of the following coins:",
+    # real_time=True,
 )
 
 # # Print the summaries

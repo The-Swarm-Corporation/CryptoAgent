@@ -28,6 +28,7 @@ class CryptoAgentSchema(BaseModel):
     """
     Pydantic schema for the final crypto analysis output.
     """
+
     id: str = Field(
         default_factory=lambda: uuid.uuid4().hex
     )  # Ensure ID is generated
@@ -85,7 +86,9 @@ class CryptoAgent:
         )
         logger.add("crypto_agent.log", rotation="10 MB")
         logger.level = log_level
-        self.log_file_name = f"crypto-agent-run-time-{uuid.uuid4().hex}"
+        self.log_file_name = (
+            f"crypto-agent-run-time-{uuid.uuid4().hex}"
+        )
 
     def get_crypto_data_coingecko(
         self, coin_id: str
@@ -300,6 +303,6 @@ class CryptoAgent:
                 self.log_file_name,
                 self.logs.model_dump_json(indent=4),
             )
-        
+
         # Return the result as a JSON string
         return self.logs.model_dump_json(indent=4)
