@@ -44,6 +44,8 @@ class CryptoAgentSchemaLog(BaseModel):
     id: str = Field(
         default_factory=lambda: uuid.uuid4().hex
     )  # Ensure ID is generated
+    agent_name: str
+    agent_description: str
     logs: List[CryptoAgentSchema] = Field(default_factory=list)
     time_stamp: str = Field(
         default_factory=lambda: datetime.utcnow().isoformat()
@@ -82,6 +84,8 @@ class CryptoAgent:
         )
         self.log_tokens = log_tokens
         self.logs = CryptoAgentSchemaLog(
+            agent_name=name,
+            agent_description=description,
             logs=[],
         )
         logger.add("crypto_agent.log", rotation="10 MB")

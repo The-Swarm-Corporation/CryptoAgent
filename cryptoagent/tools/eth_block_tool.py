@@ -6,6 +6,7 @@ import os
 
 load_dotenv()
 
+
 def format_dict_row_by_row(data: dict) -> str:
     """
     Format a dictionary such that each key and value is printed on a separate line.
@@ -22,9 +23,9 @@ def format_dict_row_by_row(data: dict) -> str:
         formatted_lines.append(f"Value: {value}")
     return "\n".join(formatted_lines)
 
+
 def fetch_and_analyze_ethereum_transaction(
-    tx_hash: str,
-    return_type: str = "both"
+    tx_hash: str, return_type: str = "both"
 ) -> Tuple[str, Dict[str, Any]] or str or Dict[str, Any]:
     """
     Fetch and analyze Ethereum blockchain transaction data.
@@ -85,7 +86,13 @@ def fetch_and_analyze_ethereum_transaction(
                 transaction_data["result"],
             )
         elif return_type == "string":
-            return f"####################### ETH TX Transaction #####################" + "\n" + "Transaction data fetched and analyzed successfully for the tx hash: {tx_hash} || Data Available:" + "\n" + format_dict_row_by_row(transaction_data)
+            return (
+                f"####################### ETH TX Transaction #####################"
+                + "\n"
+                + "Transaction data fetched and analyzed successfully for the tx hash: {tx_hash} || Data Available:"
+                + "\n"
+                + format_dict_row_by_row(transaction_data)
+            )
         elif return_type == "dict":
             return transaction_data["result"]
         else:
@@ -99,7 +106,9 @@ def fetch_and_analyze_ethereum_transaction(
                 {},
             )
         elif return_type == "string":
-            return f"HTTP error occurred while fetching data: {http_err}"
+            return (
+                f"HTTP error occurred while fetching data: {http_err}"
+            )
         elif return_type == "dict":
             return {}
         else:
@@ -124,7 +133,10 @@ def fetch_and_analyze_ethereum_transaction(
             f"Value error while processing transaction data: {val_err}"
         )
         if return_type == "both":
-            return f"Error processing the transaction data: {val_err}", {}
+            return (
+                f"Error processing the transaction data: {val_err}",
+                {},
+            )
         elif return_type == "string":
             return f"Error processing the transaction data: {val_err}"
         elif return_type == "dict":
@@ -142,6 +154,7 @@ def fetch_and_analyze_ethereum_transaction(
             return {}
         else:
             raise ValueError("Invalid return_type specified.")
+
 
 # out = fetch_and_analyze_ethereum_transaction("0xa55de4c4362ac656ee0d82a16c4332d5e93e2818b896d411e2b9f79c61f8a217", return_type="string")
 # print(out)
